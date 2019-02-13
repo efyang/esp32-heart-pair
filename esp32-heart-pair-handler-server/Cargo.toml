@@ -1,0 +1,10 @@
+[package]
+name = "esp32-heart-pair-handler-server"
+version = "0.1.0"
+authors = ["Edward Yang <edward.yang6771@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+tokio = "0.1.15"
+failure = "0.1.5"
+uuid = { version = "0.7.2", features = ["v4"] }
