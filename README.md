@@ -1,6 +1,7 @@
 # esp32-heart-pair
 All the files for the esp32 heart pair project.
 
+### Outline
 At any given time, we can assume that at most only 1 pair is connected to the server. Thus, when one device connects to a server, the server will automatically pair it with the next device that connects to the server. We assume that device-level programs have no lag, but that device-server messages will.
 
 ### Components
