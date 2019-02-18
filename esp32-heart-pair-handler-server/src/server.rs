@@ -1,49 +1,123 @@
-use tokio::io;
-use tokio::net::UdpSocket;
-use tokio::prelude::*;
-
 use uuid::Uuid;
+use failure::Error;
 
-use std::net::{SocketAddr, IpAddr};
+use std::io::ErrorKind;
+use std::net::{UdpSocket, SocketAddr, IpAddr};
 use std::collections::HashMap;
 use std::time::{SystemTime, Duration};
 
-struct Server {
+use crate::message::{parse_datagram, RecvMessage, SendMessage};
+
+const DATAGRAM_MAX_SIZE: usize = 65_507;
+pub struct Server {
     socket: UdpSocket,
     clients: HashMap<SocketAddr, PairClient>, // in ms
+    // some monotonically increasing value that is initially determined by the sender
+    // used to solve out-of-order
+    last_message_times: HashMap<SocketAddr, usize>,
+    last_clean_time: SystemTime,
+    buffer: [u8; DATAGRAM_MAX_SIZE],
+    trigger_state: bool,
 }
 
 impl Server {
-    fn new(port: u16) -> Server {
-        Server {
-            socket: UdpSocket::bind(&SocketAddr::new("127.0.0.1".parse().unwrap(), port)).unwrap(),
+    pub fn new(port: u16) -> Result<Server, Error> {
+        let socket = UdpSocket::bind(&SocketAddr::new("127.0.0.1".parse()?, port))?;
+        socket.set_nonblocking(true)?;
+        Ok(Server {
+            socket: socket,
             clients: HashMap::new(),
+            last_message_times: HashMap::new(),
+            last_clean_time: SystemTime::now(),
+            buffer: [0; DATAGRAM_MAX_SIZE],
+            trigger_state: false,
+        })
+    }
+
+    // handle any incoming datagrams and clean the queue
+    pub fn run(&mut self) -> Result<(), Error> {
+        loop {
+            self.handle_datagram()?;
+            self.clean_queue();
         }
     }
 
-    fn run(&mut self) {
-
+    fn message_in_order(&mut self, address: SocketAddr, send_time: usize) -> bool {
+        unimplemented!()
     }
+
+    fn handle_datagram(&mut self) -> Result<(), Error> {
+        match self.socket.recv_from(&mut self.buffer) {
+            Ok((bytes_read, address)) => {
+                let (message, send_time) = parse_datagram(&self.buffer[..bytes_read])?;
+                if !self.last_message_times.contains_key(&address) {
+                    self.last_message_times.insert(address, 0);
+                }
+
+                if self.message_in_order(address, send_time) {
+                    self.last_message_times.insert(address, send_time);
+                    self.handle_message(message, address)?;
+                } // otherwise we throw it out
+            }
+            Err(ref e) if e.kind() == ErrorKind::WouldBlock => {},
+            Err(e) => {
+                Err(e)?;
+            }
+        }
+
+        Ok(())
+    }
+
+    fn handle_message(&mut self, message: RecvMessage, address: SocketAddr) -> Result<(), Error> {
+        match message {
+            RecvMessage::Trigger => {
+                self.trigger_state = true;
+            }
+            RecvMessage::Stop => {
+                self.trigger_state = false;
+            }
+            RecvMessage::GotUpdate(uuid) => {
+
+            }
+            RecvMessage::ClientUpdate(bpm, elapsed_since_beat_peak) => {
+
+            }
+        }
+
+        Ok(())
+    }
+
 
     // we only add a client if it sends us GOT_UPDATE or CLIENT_UPDATE messages - TRIGGER and
     // STOP_TRIGGER are separate and distinct so we never confuse client and trigger messages
     fn add_client(&mut self) {
 
     }
-}
 
+    fn clean_queue(&mut self) {
+        let current_time = SystemTime::now();
+        // if we have waited AWAIT_ACK_MAX_TIME since last clean
+        if current_time.duration_since(self.last_clean_time).ok().map_or(false, |t| t > AWAIT_ACK_MAX_TIME) {
+            for client_info in self.clients.values_mut() {
+                client_info.clean_messages();
+            }
+        }
+    }
+}
 
 struct PairClient {
     latency: Duration,
     await_ack_message_queue: HashMap<Uuid, SystemTime>,
+    should_send_trigger_state: bool,
 }
 
 const AWAIT_ACK_MAX_TIME: Duration = Duration::from_millis(500);
 impl PairClient {
-    fn new() -> PairClient {
+    fn new(should_send_trigger_state: bool, last_message_time: usize) -> PairClient {
         PairClient {
             latency: Duration::from_millis(0),
             await_ack_message_queue: HashMap::new(),
+            should_send_trigger_state: should_send_trigger_state,
         }
     }
 
