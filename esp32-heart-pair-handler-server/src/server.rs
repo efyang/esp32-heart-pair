@@ -1,8 +1,9 @@
 use uuid::Uuid;
 use failure::Error;
 
+use std::ffi::CString;
 use std::io::ErrorKind;
-use std::net::{UdpSocket, SocketAddr, IpAddr};
+use std::net::{UdpSocket, SocketAddr};
 use std::collections::HashMap;
 use std::time::{SystemTime, Duration};
 
@@ -88,6 +89,7 @@ impl Server {
 
     fn handle_message(&mut self, message: RecvMessage, address: SocketAddr) -> Result<(), Error> {
         match message {
+            // TODO: Forward triggers?
             RecvMessage::Trigger => {
                 self.trigger_state = true;
             }
@@ -104,11 +106,10 @@ impl Server {
                 let uuid = Uuid::new_v4();
                 self.add_client(&address);
                 let forward = SendMessage::ServerUpdate(current_time, uuid, bpm, elapsed_since_beat_peak, self.trigger_state, self.clients[&address].latency());
-                let forward_s = forward.serialize(); // TODO: nul-terminate
+                let forward_s = CString::new(forward.serialize()?)?;
                 for (client_address, client_info) in self.clients.iter_mut().filter(|(&k, _)| k != address) {
                     client_info.add_message(uuid, current_time);
-                    self.socket.send_to(&[], client_address);
-                    unimplemented!();
+                    self.socket.send_to(forward_s.as_bytes_with_nul(), client_address)?;
                 }
             }
         }

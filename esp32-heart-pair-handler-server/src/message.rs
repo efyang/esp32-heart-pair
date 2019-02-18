@@ -19,8 +19,18 @@ pub enum SendMessage {
 }
 
 impl SendMessage {
-    pub fn serialize(self) -> String {
-        unimplemented!()
+    pub fn serialize(self) -> Result<String, Error> {
+        match self {
+            SendMessage::ServerUpdate(send_time, uuid, bpm, elapsed_since_beat_peak, trigger_state, estimated_latency) => {
+                Ok(format!("SERVER_UPDATE {} {} {} {} {} {}",
+                           send_time.elapsed()?.as_millis(),
+                           uuid,
+                           bpm,
+                           elapsed_since_beat_peak.as_millis(),
+                           trigger_state,
+                           estimated_latency.as_millis()))
+            }
+        }
     }
 }
 
