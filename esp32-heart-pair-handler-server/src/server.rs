@@ -20,10 +20,12 @@ pub struct Server {
     trigger_state: bool,
 }
 
+const SERVER_LOOP_DELAY: Duration = Duration::from_millis(2);
 impl Server {
     pub fn new(port: u16) -> Result<Server, Error> {
         let socket = UdpSocket::bind(&SocketAddr::new("127.0.0.1".parse()?, port))?;
         socket.set_nonblocking(true)?;
+        println!("Server running on: {}", socket.local_addr()?);
         Ok(Server {
             socket: socket,
             clients: HashMap::new(),
@@ -39,25 +41,41 @@ impl Server {
         loop {
             self.handle_datagram()?;
             self.clean_queue();
+            ::std::thread::sleep(SERVER_LOOP_DELAY);
         }
     }
 
     fn message_in_order(&mut self, address: SocketAddr, send_time: usize) -> bool {
-        unimplemented!()
+        if !self.last_message_times.contains_key(&address) {
+            self.last_message_times.insert(address, send_time);
+            return true;
+        } else {
+            return send_time > self.last_message_times[&address];
+        }
     }
 
     fn handle_datagram(&mut self) -> Result<(), Error> {
+        // clear the buffer
+        self.buffer = [0; DATAGRAM_MAX_SIZE];
         match self.socket.recv_from(&mut self.buffer) {
             Ok((bytes_read, address)) => {
-                let (message, send_time) = parse_datagram(&self.buffer[..bytes_read])?;
-                if !self.last_message_times.contains_key(&address) {
-                    self.last_message_times.insert(address, 0);
-                }
+                println!("GOT {} bytes from address: {}", bytes_read, address);
+                // 1 extra byte to nul terminate
+                let (message, send_time) = parse_datagram(&self.buffer[..bytes_read + 1])?;
 
+                // we only want messages that are in order
                 if self.message_in_order(address, send_time) {
+                    // update with the new message times
                     self.last_message_times.insert(address, send_time);
                     self.handle_message(message, address)?;
                 } // otherwise we throw it out
+
+                println!("HANDLED DATAGRAM... NEW STATE:");
+                dbg!(&self.clients);
+                dbg!(&self.last_message_times);
+                dbg!(&self.last_clean_time);
+                dbg!(self.trigger_state);
+                println!("");
             }
             Err(ref e) if e.kind() == ErrorKind::WouldBlock => {},
             Err(e) => {
@@ -77,10 +95,21 @@ impl Server {
                 self.trigger_state = false;
             }
             RecvMessage::GotUpdate(uuid) => {
-
+                let current_time = SystemTime::now();
+                self.add_client(&address);
+                self.clients.get_mut(&address).unwrap().recalculate_latency_got_ack(uuid, current_time);
             }
             RecvMessage::ClientUpdate(bpm, elapsed_since_beat_peak) => {
-
+                let current_time = SystemTime::now();
+                let uuid = Uuid::new_v4();
+                self.add_client(&address);
+                let forward = SendMessage::ServerUpdate(current_time, uuid, bpm, elapsed_since_beat_peak, self.trigger_state, self.clients[&address].latency());
+                let forward_s = forward.serialize(); // TODO: nul-terminate
+                for (client_address, client_info) in self.clients.iter_mut().filter(|(&k, _)| k != address) {
+                    client_info.add_message(uuid, current_time);
+                    self.socket.send_to(&[], client_address);
+                    unimplemented!();
+                }
             }
         }
 
@@ -90,8 +119,10 @@ impl Server {
 
     // we only add a client if it sends us GOT_UPDATE or CLIENT_UPDATE messages - TRIGGER and
     // STOP_TRIGGER are separate and distinct so we never confuse client and trigger messages
-    fn add_client(&mut self) {
-
+    fn add_client(&mut self, address: &SocketAddr) {
+        if !self.clients.contains_key(address) {
+            self.clients.insert(address.clone(), PairClient::new());
+        }
     }
 
     fn clean_queue(&mut self) {
@@ -105,19 +136,18 @@ impl Server {
     }
 }
 
+#[derive(Debug)]
 struct PairClient {
     latency: Duration,
     await_ack_message_queue: HashMap<Uuid, SystemTime>,
-    should_send_trigger_state: bool,
 }
 
 const AWAIT_ACK_MAX_TIME: Duration = Duration::from_millis(500);
 impl PairClient {
-    fn new(should_send_trigger_state: bool, last_message_time: usize) -> PairClient {
+    fn new() -> PairClient {
         PairClient {
             latency: Duration::from_millis(0),
             await_ack_message_queue: HashMap::new(),
-            should_send_trigger_state: should_send_trigger_state,
         }
     }
 
@@ -137,6 +167,10 @@ impl PairClient {
             current_time.duration_since(v).ok().map_or(true, |t| t < AWAIT_ACK_MAX_TIME)
         });
     }
+
+    fn latency(&self) -> Duration {
+        self.latency
+    }
 }
 
 const LATENCY_COMP_FILTER_PREV: f64 = 0.9;
@@ -148,8 +182,11 @@ impl PairClient {
             // use a complementary filter to calculate the latency
             self.latency = ack_time.duration_since(time).ok().map_or(self.latency, |new_latency| {
                 Duration::from_millis((LATENCY_COMP_FILTER_PREV * self.latency.as_millis() as f64 +
-                                       LATENCY_COMP_FILTER_NEW * new_latency.as_millis() as f64) as u64)
+                                       LATENCY_COMP_FILTER_NEW * (new_latency.as_millis() as f64 / 2f64)) as u64)
+                    // new latency is 1/2 of round-trip time
             });
+        } else {
+            eprintln!("ack without existing message");
         }
     }
 }

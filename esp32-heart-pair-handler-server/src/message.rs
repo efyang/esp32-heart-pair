@@ -2,6 +2,7 @@ use uuid::Uuid;
 use failure::Error;
 
 use std::time::{SystemTime, Duration};
+use std::ffi::CStr;
 
 pub enum RecvMessage {
     Trigger,
@@ -13,8 +14,8 @@ pub enum RecvMessage {
 }
 
 pub enum SendMessage {
-    // uuid, bpm, time since beat peak, trigger state, estimated latency, send time
-    ServerUpdate(Uuid, f64, Duration, bool, Duration, usize, SystemTime),
+    // send time, uuid, bpm, time since beat peak, trigger state, estimated latency
+    ServerUpdate(SystemTime, Uuid, f64, Duration, bool, Duration),
 }
 
 impl SendMessage {
@@ -26,5 +27,29 @@ impl SendMessage {
 // TODO
 // message, send time
 pub fn parse_datagram(datagram: &[u8]) -> Result<(RecvMessage, usize), Error> {
-    unimplemented!()
+    let datagram_s = CStr::from_bytes_with_nul(datagram)?.to_str()?.trim().to_owned();
+    println!("Got string: {}", datagram_s);
+    let split_s = datagram_s.split(" ").collect::<Vec<&str>>();
+    println!("strings: {:?}", split_s);
+    let time: usize = split_s[1].parse()?;
+    match split_s[0] {
+        "TRIGGER" => {
+            Ok((RecvMessage::Trigger, time))
+        }
+        "STOP" => {
+            Ok((RecvMessage::Stop, time))
+        }
+        "GOT_UPDATE" => {
+            let uuid = Uuid::parse_str(split_s[2])?;
+            Ok((RecvMessage::GotUpdate(uuid), time))
+        }
+        "CLIENT_UPDATE" => {
+            let bpm: f64 = split_s[2].parse()?;
+            let elapsed_since_beat_peak: u64 = split_s[3].parse()?;
+            Ok((RecvMessage::ClientUpdate(bpm, Duration::from_millis(elapsed_since_beat_peak)), time))
+        }
+        _ => {
+            bail!("Faulty Datagram")
+        }
+    }
 }
