@@ -22,9 +22,10 @@ pub struct Server {
 }
 
 const SERVER_LOOP_DELAY: Duration = Duration::from_millis(2);
+const SERVER_BIND_IP: &'static str = "0.0.0.0";
 impl Server {
     pub fn new(port: u16) -> Result<Server, Error> {
-        let socket = UdpSocket::bind(&SocketAddr::new("127.0.0.1".parse()?, port))?;
+        let socket = UdpSocket::bind(&SocketAddr::new(SERVER_BIND_IP.parse()?, port))?;
         socket.set_nonblocking(true)?;
         println!("Server running on: {}", socket.local_addr()?);
         Ok(Server {
