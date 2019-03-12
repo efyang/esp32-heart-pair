@@ -3,6 +3,7 @@
 #include <BLEServer.h>
 
 #include "moodcolorcharacteristic.h"
+#include "moodcolor.h"
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
 
@@ -16,7 +17,7 @@ void setup_ble_gatt() {
   BLEServer *pServer = BLEDevice::createServer();
   BLEService *pService = pServer->createService(SERVICE_UUID);
   MoodColor color (0,0,0);
-  BLECharacteristic *pCharacteristic = create_mood_color_characteristic(pService, CHARACTERISTIC_UUID, MoodColor(0,0,0), &color);
+  BLECharacteristic *pCharacteristic = create_mood_color_characteristic(pService, CHARACTERISTIC_UUID, color, &color);
   pService->start();
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVICE_UUID);

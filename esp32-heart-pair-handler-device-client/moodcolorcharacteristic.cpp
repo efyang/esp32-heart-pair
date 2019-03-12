@@ -20,7 +20,7 @@ BLECharacteristic * create_mood_color_characteristic(BLEService *pService, std::
                                          BLECharacteristic::PROPERTY_READ |
                                          BLECharacteristic::PROPERTY_WRITE
                                        );
-  //pCharacteristic->setValue(defaultValue.toString());
+  pCharacteristic->setValue(defaultValue.toString());
   BLEMoodCharacteristicUpdater cb(color);
   pCharacteristic->setCallbacks(&cb);
   return pCharacteristic;
