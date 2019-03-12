@@ -8,7 +8,7 @@
 // updater callbacks for mood characteristics
 class BLEMoodCharacteristicUpdater: public BLECharacteristicUpdaterCallbacks<MoodColor> {
   public:
-    BLEMoodCharacteristicUpdater (MoodColor *m) : BLECharacteristicUpdaterCallbacks<MoodColor> (m) {};
+    BLEMoodCharacteristicUpdater (MoodColor *m): BLECharacteristicUpdaterCallbacks<MoodColor> (m) {};
     MoodColor convertStringToValue(std::string* input) {
       return MoodColor(0, 0, 0);
     }
@@ -21,7 +21,6 @@ BLECharacteristic * create_mood_color_characteristic(BLEService *pService, std::
                                          BLECharacteristic::PROPERTY_WRITE
                                        );
   pCharacteristic->setValue(defaultValue.toString());
-  BLEMoodCharacteristicUpdater cb(color);
-  pCharacteristic->setCallbacks(&cb);
+  pCharacteristic->setCallbacks(new BLEMoodCharacteristicUpdater(color));
   return pCharacteristic;
 }
