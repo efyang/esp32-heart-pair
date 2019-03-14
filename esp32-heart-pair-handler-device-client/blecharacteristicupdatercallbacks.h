@@ -15,6 +15,7 @@ class BLECharacteristicUpdaterCallbacks: public BLECharacteristicCallbacks {
 
     void onRead(BLECharacteristic* pCharacteristic) {
       Serial.println("Read value");
+      Serial.println(value_ref->toString().c_str());
       value_ref->toBytes(tmp);
       pCharacteristic->setValue(tmp, value_ref->bytesSize);
     }
