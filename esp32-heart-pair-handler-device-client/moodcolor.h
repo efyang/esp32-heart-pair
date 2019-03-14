@@ -12,6 +12,8 @@ class MoodColor {
   public:
     MoodColor(byte r, byte g, byte b);
     std::string toString();
+    void toBytes(byte* r);
+    const static int bytesSize = 3;
 };
 
 #endif

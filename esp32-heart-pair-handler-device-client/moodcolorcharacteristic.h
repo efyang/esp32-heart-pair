@@ -9,7 +9,7 @@
 class BLEMoodCharacteristicUpdater: public BLECharacteristicUpdaterCallbacks<MoodColor> {
   public:
     BLEMoodCharacteristicUpdater (MoodColor *m);
-    MoodColor convertStringToValue(std::string* input);
+    MoodColor convertBytesToValue(uint8_t* input);
 };
 
 BLECharacteristic * create_mood_color_characteristic(BLEService *pService, std::string uuid, MoodColor defaultValue, MoodColor* color);

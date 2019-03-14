@@ -1,6 +1,7 @@
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
+#include <Arduino.h>
 
 #include "moodcolor.h"
 #include "blecharacteristicupdatercallbacks.h"
@@ -9,8 +10,11 @@
 class BLEMoodCharacteristicUpdater: public BLECharacteristicUpdaterCallbacks<MoodColor> {
   public:
     BLEMoodCharacteristicUpdater (MoodColor *m): BLECharacteristicUpdaterCallbacks<MoodColor> (m) {};
-    MoodColor convertStringToValue(std::string* input) {
-      return MoodColor(0, 0, 0);
+    MoodColor convertBytesToValue(uint8_t* input) {
+      Serial.println(*(input + 0), HEX);
+      Serial.println(*(input + 1), HEX);
+      Serial.println(*(input + 2), HEX);
+      return MoodColor(*(input + 0), *(input + 1), *(input + 2));
     }
 };
 

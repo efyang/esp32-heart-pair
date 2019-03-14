@@ -10,7 +10,7 @@
 #define SERVICE_UUID        "d60df0e4-8a6f-4982-bf47-dab7e3b5d119"
 
 #define HAPPY_MOOD_COLOR_CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
-#define DEFAULT_HAPPY_MOOD_COLOR MoodColor(0,0,0)
+#define DEFAULT_HAPPY_MOOD_COLOR MoodColor(4,5,6)
 
 void setup_ble_gatt() {
   Serial.println("Starting BLE work!");
@@ -19,7 +19,7 @@ void setup_ble_gatt() {
   BLEServer *pServer = BLEDevice::createServer();
   BLEService *pService = pServer->createService(SERVICE_UUID);
   
-  MoodColor happyColor (0,0,0);
+  MoodColor happyColor (7,8,9);
   BLECharacteristic *pCharacteristic = create_mood_color_characteristic(pService, HAPPY_MOOD_COLOR_CHARACTERISTIC_UUID, DEFAULT_HAPPY_MOOD_COLOR, &happyColor);
 
   

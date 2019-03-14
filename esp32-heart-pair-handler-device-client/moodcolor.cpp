@@ -15,3 +15,9 @@ std::string MoodColor::toString() {
   sprintf(buffer, "%02X%02X%02X", red, green, blue);
   return buffer;
 }
+
+void MoodColor::toBytes(byte* r) {
+  r[0] = red;
+  r[1] = green;
+  r[2] = blue;
+}
