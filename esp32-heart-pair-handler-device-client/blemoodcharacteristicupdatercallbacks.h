@@ -1,3 +1,6 @@
+#ifndef MOOD_CHAR_UPDATER_H
+#define MOOD_CHAR_UPDATER_H
+
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
@@ -57,3 +60,5 @@ BLECharacteristic * create_mood_color_characteristic(BLEService *pService, std::
   pCharacteristic->setCallbacks(new BLEMoodCharacteristicUpdaterCallbacks(color));
   return pCharacteristic;
 }
+
+#endif

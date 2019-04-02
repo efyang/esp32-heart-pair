@@ -1,6 +1,10 @@
+#ifndef BLE_SETUP_H
+#define BLE_SETUP_H
+
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
+#include <Arduino.h>
 
 #include "blemoodcharacteristicupdatercallbacks.h"
 // See the following for generating UUIDs:
@@ -30,3 +34,5 @@ void setup_ble_gatt() {
   BLEDevice::startAdvertising();
   Serial.println("Characteristic defined! Now you can read it in your phone!");
 }
+
+#endif
