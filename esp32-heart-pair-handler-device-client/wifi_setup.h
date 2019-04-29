@@ -4,15 +4,12 @@
 #include <WiFi.h>
 #include <AsyncUDP.h>
 
-const char * ssid = "***********";
-const char * password = "***********";
-
 AsyncUDP udp;
 
-void setup_wifi() {
+void setup_wifi(std::string ssid, std::string password) {
     Serial.begin(115200);
     WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
+    WiFi.begin(ssid.c_str(), password.c_str());
     if (WiFi.waitForConnectResult() != WL_CONNECTED) {
         Serial.println("WiFi Failed");
         while(1) {
