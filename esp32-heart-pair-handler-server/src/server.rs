@@ -102,11 +102,11 @@ impl Server {
                 self.add_client(&address);
                 self.clients.get_mut(&address).unwrap().recalculate_latency_got_ack(uuid, current_time);
             }
-            RecvMessage::ClientUpdate(bpm, elapsed_since_beat_peak) => {
+            RecvMessage::ClientUpdate(love, happy, sad, fear, anger) => {
                 let current_time = SystemTime::now();
                 let uuid = Uuid::new_v4();
                 self.add_client(&address);
-                let forward = SendMessage::ServerUpdate(current_time, uuid, bpm, elapsed_since_beat_peak, self.trigger_state, self.clients[&address].latency());
+                let forward = SendMessage::ServerUpdate(current_time, uuid, love, happy, sad, fear, anger, self.trigger_state, self.clients[&address].latency());
                 let forward_s = CString::new(forward.serialize()?)?;
                 for (client_address, client_info) in self.clients.iter_mut().filter(|(&k, _)| k != address) {
                     client_info.add_message(uuid, current_time);
