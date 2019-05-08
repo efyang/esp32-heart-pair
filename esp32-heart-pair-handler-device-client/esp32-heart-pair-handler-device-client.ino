@@ -71,7 +71,7 @@ void loop() {
   }
   
   // prom_loop(heart_leds, NUM_HEART_LEDS);
-  set_all_leds(heart_leds, NUM_HEART_LEDS, ifThenColor(love_hold_sensor.pressed, CHSV(60, 0, fade_in_out_2(gt) / 3)));
+  set_all_leds(heart_leds, NUM_HEART_LEDS, ifThenColor(love_hold_sensor.pressed, CHSV(60, 0, fade_in_out_2(gt) / 2.5)));
   FastLED.show();
 }
 
