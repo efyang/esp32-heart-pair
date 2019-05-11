@@ -56,10 +56,10 @@ void loop() {
   fear_mood_sensor.update_state();
   anger_mood_sensor.update_state();
 
-  button_leds[0] = ifThenColor(happy_mood_sensor.latched, DEFAULT_HAPPY_COLOR);
-  button_leds[1] = ifThenColor(sad_mood_sensor.latched, DEFAULT_SAD_COLOR);
-  button_leds[2] = ifThenColor(fear_mood_sensor.latched, DEFAULT_FEAR_COLOR);
-  button_leds[3] = ifThenColor(anger_mood_sensor.latched, DEFAULT_ANGER_COLOR);
+  button_leds[0] = ifThenColor(happy_mood_sensor.latched, happyColor);
+  button_leds[1] = ifThenColor(sad_mood_sensor.latched, sadColor);
+  button_leds[2] = ifThenColor(fear_mood_sensor.latched, fearColor);
+  button_leds[3] = ifThenColor(anger_mood_sensor.latched, angerColor);
 
   if (previous_held == false && love_hold_sensor.pressed) {
     gt = 0;

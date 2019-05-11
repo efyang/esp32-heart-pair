@@ -13,8 +13,13 @@
 
 #define SERVICE_UUID        "d60df0e4-8a6f-4982-bf47-dab7e3b5d119"
 
+#define LOVE_MOOD_COLOR_CHARACTERISTIC_UUID "b6b60a30-305f-4a7e-98a3-dde8d017459d"
 #define HAPPY_MOOD_COLOR_CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+#define SAD_MOOD_COLOR_CHARACTERISTIC_UUID "f6845c39-075f-4b91-a505-2e16a69d3d57"
+#define FEAR_MOOD_COLOR_CHARACTERISTIC_UUID "c7dc21a4-3114-4ab2-8254-ef3c91b97b32"
+#define ANGER_MOOD_COLOR_CHARACTERISTIC_UUID "838fc38a-df30-42cb-9b55-2f3596dd0506"
 
+#define LAMP_COLOR_CHARACTERISTIC_UUID "c367b354-c1cf-43d6-8c3f-24288fc231ce"
 
 void setup_ble_gatt() {
   Serial.println("Starting BLE work!");
@@ -23,7 +28,13 @@ void setup_ble_gatt() {
   BLEServer *pServer = BLEDevice::createServer();
   BLEService *pService = pServer->createService(SERVICE_UUID);
   
-  BLECharacteristic *pHappyMoodCharacteristic = create_mood_color_characteristic(pService, HAPPY_MOOD_COLOR_CHARACTERISTIC_UUID, DEFAULT_HAPPY_COLOR, &happyColor);
+  BLECharacteristic *pLoveMoodColorCharacteristic = create_mood_color_characteristic(pService, LOVE_MOOD_COLOR_CHARACTERISTIC_UUID, &loveColor);
+  BLECharacteristic *pHappyMoodColorCharacteristic = create_mood_color_characteristic(pService, HAPPY_MOOD_COLOR_CHARACTERISTIC_UUID, &happyColor);
+  BLECharacteristic *pSadMoodColorCharacteristic = create_mood_color_characteristic(pService, SAD_MOOD_COLOR_CHARACTERISTIC_UUID, &sadColor);
+  BLECharacteristic *pFearMoodColorCharacteristic = create_mood_color_characteristic(pService, FEAR_MOOD_COLOR_CHARACTERISTIC_UUID, &fearColor);
+  BLECharacteristic *pAngerMoodColorCharacteristic = create_mood_color_characteristic(pService, ANGER_MOOD_COLOR_CHARACTERISTIC_UUID, &angerColor);
+
+  BLECharacteristic *pLampColorCharacteristic = create_mood_color_characteristic(pService, LAMP_COLOR_CHARACTERISTIC_UUID, &lampColor);
 
   pService->start();
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();

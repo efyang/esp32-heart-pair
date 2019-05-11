@@ -48,7 +48,7 @@ class BLEMoodCharacteristicUpdaterCallbacks: public BLECharacteristicCallbacks {
     }
 };
 
-BLECharacteristic * create_mood_color_characteristic(BLEService *pService, std::string uuid, CRGB defaultValue, CRGB* color) {
+BLECharacteristic * create_mood_color_characteristic(BLEService *pService, std::string uuid, CRGB* color) {
   BLECharacteristic *pCharacteristic = pService->createCharacteristic(
                                          uuid,
                                          BLECharacteristic::PROPERTY_READ |
