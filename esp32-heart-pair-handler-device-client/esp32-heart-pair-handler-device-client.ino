@@ -1,9 +1,11 @@
 #include "blemoodcharacteristicupdatercallbacks.h"
+#include "blemodeupdatercallbacks.h"
 #include "BLE_setup.h"
 #include "wifi_setup.h"
 #include <FastLED.h>
 #include "touch_sensor.h"
 #include "color.h"
+#include "opmode.h"
 
 #define NUM_HEART_LEDS 27
 #define HEART_LEDS_DATA_PIN 26
@@ -56,22 +58,52 @@ void loop() {
   fear_mood_sensor.update_state();
   anger_mood_sensor.update_state();
 
-  button_leds[0] = ifThenColor(happy_mood_sensor.latched, happyColor);
-  button_leds[1] = ifThenColor(sad_mood_sensor.latched, sadColor);
-  button_leds[2] = ifThenColor(fear_mood_sensor.latched, fearColor);
-  button_leds[3] = ifThenColor(anger_mood_sensor.latched, angerColor);
+  switch (opmode) {
+    case NORMAL_MODE:
+      button_leds[0] = ifThenColor(happy_mood_sensor.latched, happyColor);
+      button_leds[1] = ifThenColor(sad_mood_sensor.latched, sadColor);
+      button_leds[2] = ifThenColor(fear_mood_sensor.latched, fearColor);
+      button_leds[3] = ifThenColor(anger_mood_sensor.latched, angerColor);
+    
+      if (previous_held == false && love_hold_sensor.pressed) {
+        gt = 0;
+      }
+      previous_held = love_hold_sensor.pressed;
+    
+      EVERY_N_MILLISECONDS( 10 ) {
+        gt += GT_STEP;
+      }
+      
+      set_all_leds(heart_leds, NUM_HEART_LEDS, ifThenColor(love_hold_sensor.pressed, CHSV(60, 0, fade_in_out_2(gt) / 2.5)));
+      break;
+      
+    case LAMP_MODE:
+      set_all_leds(heart_leds, NUM_HEART_LEDS, lampColor);
+      break;
 
-  if (previous_held == false && love_hold_sensor.pressed) {
-    gt = 0;
+    case LAMP_MODE_NO_INDICATORS:
+      set_all_leds(heart_leds, NUM_HEART_LEDS, lampColor);
+      break;
+      
+    case CONFIGURE_MODE:
+      button_leds[0] = happyColor;
+      button_leds[1] = sadColor;
+      button_leds[2] = fearColor;
+      button_leds[3] = angerColor;
+      set_all_leds(heart_leds, NUM_HEART_LEDS, loveColor);
+      break;
+      
+    case PROM_MODE:
+      prom_loop(heart_leds, NUM_HEART_LEDS);
+      break;
+      
+    case OFF_MODE:
+    default:
+      set_all_leds(heart_leds, NUM_HEART_LEDS, CRGB::Black);
+      set_all_leds(button_leds, NUM_BUTTON_LEDS, CRGB::Black);
+      break;
   }
-  previous_held = love_hold_sensor.pressed;
 
-  EVERY_N_MILLISECONDS( 10 ) {
-    gt += GT_STEP;
-  }
-  
-  // prom_loop(heart_leds, NUM_HEART_LEDS);
-  set_all_leds(heart_leds, NUM_HEART_LEDS, ifThenColor(love_hold_sensor.pressed, CHSV(60, 0, fade_in_out_2(gt) / 2.5)));
   FastLED.show();
 }
 

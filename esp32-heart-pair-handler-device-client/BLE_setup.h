@@ -6,8 +6,10 @@
 #include <BLEServer.h>
 #include <Arduino.h>
 #include "color.h"
+#include "opmode.h"
 
 #include "blemoodcharacteristicupdatercallbacks.h"
+#include "blemodeupdatercallbacks.h"
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
 
@@ -20,6 +22,8 @@
 #define ANGER_MOOD_COLOR_CHARACTERISTIC_UUID "838fc38a-df30-42cb-9b55-2f3596dd0506"
 
 #define LAMP_COLOR_CHARACTERISTIC_UUID "c367b354-c1cf-43d6-8c3f-24288fc231ce"
+
+#define MODE_CHARACTERISTIC_UUID "ae2c2e59-fb28-4737-9144-7dc72d69ccf4"
 
 void setup_ble_gatt() {
   Serial.println("Starting BLE work!");
@@ -35,6 +39,8 @@ void setup_ble_gatt() {
   BLECharacteristic *pAngerMoodColorCharacteristic = create_mood_color_characteristic(pService, ANGER_MOOD_COLOR_CHARACTERISTIC_UUID, &angerColor);
 
   BLECharacteristic *pLampColorCharacteristic = create_mood_color_characteristic(pService, LAMP_COLOR_CHARACTERISTIC_UUID, &lampColor);
+
+  BLECharacteristic *pModeCharacteristic = create_mode_characteristic(pService, MODE_CHARACTERISTIC_UUID, &opmode);
 
   pService->start();
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
