@@ -7,9 +7,13 @@
 #include <Arduino.h>
 #include "color.h"
 #include "opmode.h"
+//#include "wifi_setup.h"
+#include "eeprom_save.h"
 
 #include "blemoodcharacteristicupdatercallbacks.h"
 #include "blemodeupdatercallbacks.h"
+#include "blewifistringupdatecallbacks.h"
+#include "bleconfigsaveswitch.h"
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
 
@@ -25,12 +29,18 @@
 
 #define MODE_CHARACTERISTIC_UUID "ae2c2e59-fb28-4737-9144-7dc72d69ccf4"
 
+//#define WIFI_SSID_CHARACTERISTIC_UUID "1cea50e2-c88d-4bbb-9ae3-6b637cee1041"
+//#define WIFI_PASS_CHARACTERISTIC_UUID "37f294c1-c9c7-48c8-b944-4b453725f8ea"
+
+#define SAVE_SWITCH_CHARACTERISTIC_UUID "eb02ef6a-07cd-4bdb-babe-3375579dc9af"
+
 void setup_ble_gatt() {
   Serial.println("Starting BLE work!");
 
   BLEDevice::init("ESP32 Heart Pair");
   BLEServer *pServer = BLEDevice::createServer();
-  BLEService *pService = pServer->createService(SERVICE_UUID);
+  BLEService *pService = pServer->createService(BLEUUID(SERVICE_UUID), 30, 0);
+
   
   BLECharacteristic *pLoveMoodColorCharacteristic = create_mood_color_characteristic(pService, LOVE_MOOD_COLOR_CHARACTERISTIC_UUID, &loveColor);
   BLECharacteristic *pHappyMoodColorCharacteristic = create_mood_color_characteristic(pService, HAPPY_MOOD_COLOR_CHARACTERISTIC_UUID, &happyColor);
@@ -41,6 +51,11 @@ void setup_ble_gatt() {
   BLECharacteristic *pLampColorCharacteristic = create_mood_color_characteristic(pService, LAMP_COLOR_CHARACTERISTIC_UUID, &lampColor);
 
   BLECharacteristic *pModeCharacteristic = create_mode_characteristic(pService, MODE_CHARACTERISTIC_UUID, &opmode);
+
+  //BLECharacteristic *pWifiSSIDCharacteristic = create_wifi_string_characteristic(pService, WIFI_SSID_CHARACTERISTIC_UUID, &wifi_ssid);
+  //BLECharacteristic *pWifiPassCharacteristic = create_wifi_string_characteristic(pService, WIFI_PASS_CHARACTERISTIC_UUID, &wifi_pass);
+
+  BLECharacteristic *pConfigSaveSwitchCharacteristic = create_config_save_switch_characteristic(pService, SAVE_SWITCH_CHARACTERISTIC_UUID, &config_save_switch);
 
   pService->start();
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();

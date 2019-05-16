@@ -63,7 +63,7 @@ int O_INDICES[] = {3,4,5,6,8,14,22,21,20,19,18,12};
 int M_INDICES[] = {3,4,5,6,9,15,22,21,20,19};
 int QUESTION_INDICES[] = {5,6,8,14,22,21,20,17,13};
 
-#define T_STEP 3
+#define T_STEP 2
 byte t = 0;
 byte letter = 0;
 void prom_loop(CRGB* leds, int num_leds) {
@@ -93,7 +93,7 @@ void prom_loop(CRGB* leds, int num_leds) {
       break;
   }
   // do some periodic updates
-  EVERY_N_MILLISECONDS( 10 ) {
+  EVERY_N_MILLISECONDS( 5 ) {
     t += T_STEP;
   }
 }

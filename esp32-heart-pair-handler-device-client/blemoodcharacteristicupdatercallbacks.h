@@ -4,7 +4,6 @@
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
-#include <Arduino.h>
 #include <FastLED.h>
 
 CRGB bytesToColor(uint8_t* input) {
@@ -20,21 +19,16 @@ void colorToBytes(CRGB* color_ref, uint8_t* r) {
 class BLEMoodCharacteristicUpdaterCallbacks: public BLECharacteristicCallbacks {
   private:
     CRGB* color_ref;
-    uint8_t tmp[3];
+    //uint8_t tmp[3];
   public:
     BLEMoodCharacteristicUpdaterCallbacks(CRGB* val_ref) {
       color_ref = val_ref;
     }
 
-    void onRead(BLECharacteristic* pCharacteristic) {
-      colorToBytes(color_ref, tmp);
-      pCharacteristic->setValue(tmp, 3);
-    }
+    void onRead(BLECharacteristic* pCharacteristic) {}
 
     void onWrite(BLECharacteristic* pCharacteristic) {
       *color_ref = bytesToColor(pCharacteristic->getData());
-      colorToBytes(color_ref, tmp);
-      pCharacteristic->setValue(tmp, 3);
     }
 };
 

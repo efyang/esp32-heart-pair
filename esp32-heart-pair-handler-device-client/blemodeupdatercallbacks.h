@@ -4,24 +4,19 @@
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
-#include <Arduino.h>
 
 class BLEModeUpdaterCallbacks: public BLECharacteristicCallbacks {
   private:
     uint8_t* mode_ref;
-    uint8_t tmp[1];
   public:
     BLEModeUpdaterCallbacks(uint8_t* val_ref) {
       mode_ref = val_ref;
     }
 
-    void onRead(BLECharacteristic* pCharacteristic) {
-      pCharacteristic->setValue(tmp, 1);
-    }
+    void onRead(BLECharacteristic* pCharacteristic) {}
 
     void onWrite(BLECharacteristic* pCharacteristic) {
       *mode_ref = *(pCharacteristic->getData());
-      pCharacteristic->setValue(tmp, 1);
     }
 };
 
