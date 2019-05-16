@@ -7,6 +7,7 @@
 #include "color.h"
 #include "opmode.h"
 #include "hsv2rgb.h"
+#include "eeprom_save.h"
 
 #define NUM_HEART_LEDS 27
 #define HEART_LEDS_DATA_PIN 26
@@ -33,6 +34,7 @@ TouchSensor anger_mood_sensor = TouchSensor(BUTTON_INPUT_3);
 
 void setup() {
   Serial.begin(115200);
+  load_settings();
   FastLED.addLeds<WS2812B, BUTTON_LEDS_DATA_PIN, GRB>(button_leds, NUM_BUTTON_LEDS).setCorrection(CoolWhiteFluorescent);
   FastLED.addLeds<WS2812B, HEART_LEDS_DATA_PIN, GRB>(heart_leds, NUM_HEART_LEDS).setCorrection(CoolWhiteFluorescent);
   love_hold_sensor.init();

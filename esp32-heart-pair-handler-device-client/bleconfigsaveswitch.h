@@ -1,7 +1,7 @@
 #ifndef CONFIG_SAVE_SWITCH_H
 #define CONFIG_SAVE_SWITCH_H
 
-
+#include "eeprom_save.h"
 
 class BLEConfigSaveSwitchCallbacks: public BLECharacteristicCallbacks {
   private:
@@ -18,7 +18,7 @@ class BLEConfigSaveSwitchCallbacks: public BLECharacteristicCallbacks {
     void onWrite(BLECharacteristic* pCharacteristic) {
       tmp[0] = true;
       pCharacteristic->setValue(tmp, 1);
-      //save
+      save_settings(loveColor, happyColor, sadColor, fearColor, angerColor, lampColor, opmode);
       pCharacteristic->setValue(tmp, 0);
     }
 };
