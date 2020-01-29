@@ -2,7 +2,7 @@
 #include "blemoodcharacteristicupdatercallbacks.h"
 #include "blemodeupdatercallbacks.h"
 #include "BLE_setup.h"
-//#include "wifi_setup.h"
+#include "wifi_setup.h"
 #include "touch_sensor.h"
 #include "color.h"
 #include "opmode.h"
@@ -43,7 +43,7 @@ void setup() {
   fear_mood_sensor.init();
   anger_mood_sensor.init();
   FastLED.setBrightness(255);
-  //setup_wifi();
+  setup_wifi("MateRS", "6199c34010c8");
   setup_ble_gatt();
 }
 

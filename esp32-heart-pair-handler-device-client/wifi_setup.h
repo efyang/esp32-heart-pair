@@ -1,6 +1,6 @@
 #ifndef WIFI_SETUP_H
 #define WIFI_SETUP_H
-/*
+
 #include <WiFi.h>
 #include <AsyncUDP.h>
 #include <Arduino.h>
@@ -131,5 +131,5 @@ void setup_wifi(std::string ssid, std::string password) {
     udp.print("CLIENT_UPDATE 0 60 50");
   }
 }
-*/
+
 #endif

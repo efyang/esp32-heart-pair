@@ -13,10 +13,10 @@ void save_settings(CRGB love_color, CRGB happy_color, CRGB sad_color, CRGB fear_
   prefs.putBool("valid", true);
   prefs.putBytes("love_color", &love_color, sizeof(CRGB));
   prefs.putBytes("happy_color", &happy_color, sizeof(CRGB));
-  prefs.putBytes("sad_color", &love_color, sizeof(CRGB));
-  prefs.putBytes("fear_color", &love_color, sizeof(CRGB));
-  prefs.putBytes("anger_color", &love_color, sizeof(CRGB));
-  prefs.putBytes("lamp_color", &love_color, sizeof(CRGB));
+  prefs.putBytes("sad_color", &sad_color, sizeof(CRGB));
+  prefs.putBytes("fear_color", &fear_color, sizeof(CRGB));
+  prefs.putBytes("anger_color", &anger_color, sizeof(CRGB));
+  prefs.putBytes("lamp_color", &lamp_color, sizeof(CRGB));
   uint8_t tmp[1];
   tmp[0] = opmode;
   prefs.putBytes("opmode", tmp, 1);
@@ -26,7 +26,9 @@ void save_settings(CRGB love_color, CRGB happy_color, CRGB sad_color, CRGB fear_
 CRGB load_color(const char * s) {
   uint8_t tmp[sizeof(CRGB)];
   prefs.getBytes(s, tmp ,sizeof(CRGB));
-  return *((CRGB *)tmp);
+  CRGB ret = CRGB::White;
+  memcpy(&ret, &tmp, sizeof(CRGB));
+  return ret;
 }
 
 void load_settings() {
