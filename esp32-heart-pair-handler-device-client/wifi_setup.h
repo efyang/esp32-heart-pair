@@ -51,20 +51,20 @@ std::string millistring() {
       return std::string(buf);
 }
 
-void send_client_update(boolean love_state, boolean happy_state, boolean sad_state, boolean anger_state, boolean fear_state) {
+void send_client_update(boolean love_state, boolean happy_state, boolean sad_state, boolean fear_state, boolean anger_state) {
    if (udp.connect(IPAddress(142, 93, 30, 237), 1234)) {
       uint8_t love = love_state;
       uint8_t happy = happy_state;
       uint8_t sad = sad_state;
-      uint8_t anger = anger_state;
       uint8_t fear = fear_state;
-      uint8_t mood_bits = (love << 4) | (happy << 3) | (sad << 2) | (anger << 1) | (fear << 0);
+      uint8_t anger = anger_state;
+      uint8_t mood_bits = (love << 4) | (happy << 3) | (sad << 2) | (fear << 1) | (anger << 0);
 
       udp.printf("CLIENT_UPDATE %u %u", millis(), mood_bits);
    }
 }
 
-unsigned long long last_server_time = 0;
+long long last_server_time = 0;
 
 void setup_wifi(std::string ssid, std::string password) {
   wifi_connected = try_wifi_connect(ssid, password, 5);
@@ -94,17 +94,32 @@ void setup_wifi(std::string ssid, std::string password) {
       char * strings[6];
       int i = 0;
       while (pch != NULL) {
-        Serial.printf("'%s'\n", pch);
         strings[i++] = pch;
         pch = strtok(NULL, " ");
       }
-
-      if (strings[0] == "SERVER_UPDATE") {
+      Serial.println(strings[0]);
+      if (strcmp(strings[0], "SERVER_UPDATE") == 0) {
         //reply to the client
         // return uuid (strings[2])
         packet.printf("GOT_UPDATE %u %s", millis(), strings[2]);
         // process data
-        Serial.println(strings[])
+        long long message_time = atoll(strings[1]);
+        if (message_time > last_server_time) {
+          last_server_time = message_time;
+          // is in order, use this info
+          uint8_t remote_bitflags = (uint8_t)atoi(strings[3]);
+          remote_love = (remote_bitflags >> 4) & 1;
+          remote_happy = (remote_bitflags >> 3) & 1;
+          remote_sad = (remote_bitflags >> 2) & 1;
+          remote_fear = (remote_bitflags >> 1) & 1;
+          remote_anger = (remote_bitflags >> 0) & 1;
+          Serial.printf("love: %d happy: %d sad: %d fear: %d anger: %d\n",
+            remote_love,
+            remote_happy,
+            remote_sad,
+            remote_fear,
+            remote_anger);
+        }
       }
     });
   }

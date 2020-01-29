@@ -69,7 +69,7 @@ void loop() {
         anger_mood_sensor.latched);
     }
   }
-  
+
   CHSV love_color_hsv = rgb2hsv_approximate(loveColor);
   
   int r = loveColor.r;
@@ -96,7 +96,14 @@ void loop() {
       r = ((r * brightness) / 2.5)/255;
       g = ((g * brightness) / 2.5)/255;
       b = ((b * brightness) / 2.5)/255;
-      set_all_leds(heart_leds, NUM_HEART_LEDS, ifThenColor(love_hold_sensor.pressed, CRGB(r,g,b)));
+      set_all_leds_between(heart_leds, 0, 13, ifThenColor(love_hold_sensor.pressed, CRGB(r,g,b)));
+      heart_leds[13] = ifThenColor(love_hold_sensor.pressed && remote_love, CRGB(r,g,b));
+      set_all_leds_between(heart_leds, 14, NUM_HEART_LEDS, ifThenColor(remote_love, CRGB(r,g,b)));
+
+      heart_leds[23] = ifThenColorDefault(remote_happy, happyColor, heart_leds[23]);
+      heart_leds[24] = ifThenColorDefault(remote_sad, sadColor, heart_leds[24]);
+      heart_leds[25] = ifThenColorDefault(remote_fear, fearColor, heart_leds[25]);
+      heart_leds[26] = ifThenColorDefault(remote_anger, angerColor, heart_leds[26]);
       break;
       
     case LAMP_MODE:
@@ -139,9 +146,13 @@ void loop() {
 }
 
 CRGB ifThenColor(bool condition, CRGB color) {
+  return ifThenColorDefault(condition, color, CRGB::Black);
+}
+
+CRGB ifThenColorDefault(bool condition, CRGB color, CRGB def) {
   if (condition) {
     return color;
   } else {
-    return CRGB::Black;
+    return def;
   }
 }

@@ -50,6 +50,12 @@ void set_all_leds(CRGB leds[], int num_leds, CRGB value) {
   }
 }
 
+void set_all_leds_between(CRGB leds[], int lo, int hi, CRGB value) {
+  for (int i = lo; i < hi; i++) {
+    leds[i] = value;
+  }
+}
+
 void set_leds_specific(CRGB leds[], int indices[], int indices_size, CRGB value) {
   for (int i = 0; i < indices_size; i++) {
     leds[indices[i]] = value;
