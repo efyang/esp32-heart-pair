@@ -60,7 +60,7 @@ void loop() {
   sad_mood_sensor.update_state();
   fear_mood_sensor.update_state();
   anger_mood_sensor.update_state();
-/*  EVERY_N_MILLISECONDS( 250 ) {
+  EVERY_N_MILLISECONDS( 250 ) {
     if (opmode != OFF_MODE && wifi_connected) {
       send_client_update(love_hold_sensor.pressed,
         happy_mood_sensor.latched,
@@ -68,8 +68,7 @@ void loop() {
         fear_mood_sensor.latched,
         anger_mood_sensor.latched);
     }
-    Serial.println("every n");
-  }*/
+  }
   
   CHSV love_color_hsv = rgb2hsv_approximate(loveColor);
   

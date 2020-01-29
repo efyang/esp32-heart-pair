@@ -43,7 +43,7 @@ impl SendMessage {
                                       trigger_state,
                                       estimated_latency) => {
                 Ok(format!("SERVER_UPDATE {} {} {} {} {}",
-                           send_time.elapsed()?.as_millis(),
+                           send_time.duration_since(SystemTime::UNIX_EPOCH)?.as_millis(),
                            uuid,
                            to_mood_bits(love_mood, happy_mood, sad_mood, fear_mood, anger_mood),
                            trigger_state,

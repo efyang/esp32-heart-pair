@@ -35,37 +35,7 @@ boolean try_wifi_connect(std::string ssid, std::string pass, int try_times) {
       } else {
         is_connected = true;
         Serial.println("wifi connected");
-  
-        udp.onPacket([] (AsyncUDPPacket packet) {
-          Serial.print("UDP Packet Type: ");
-          Serial.print(packet.isBroadcast() ? "Broadcast" : packet.isMulticast() ? "Multicast" : "Unicast");
-          Serial.print(", From: ");
-          Serial.print(packet.remoteIP());
-          Serial.print(":");
-          Serial.print(packet.remotePort());
-          Serial.print(", To: ");
-          Serial.print(packet.localIP());
-          Serial.print(":");
-          Serial.print(packet.localPort());
-          Serial.print(", Length: ");
-          Serial.print(packet.length());
-          Serial.print(", Data: ");
-          Serial.write(packet.data(), packet.length());
-          Serial.println();
 
-          char data_s[packet.length() + 1];
-          strncpy((char*)packet.data(), data_s, packet.length());
-          data_s[packet.length()] = '\0';
-          char * pch = strtok(data_s, " ");
-          int i = 1;
-          while (pch != NULL) {
-            i += 1;
-            pch = strtok(NULL, " ");
-            Serial.println(pch);
-          }
-          //reply to the client
-          //packet.printf("GOT_UPDATE %u bytes of data", packet.length());
-        });
         connecting = false;
         return true;
       }
@@ -73,6 +43,12 @@ boolean try_wifi_connect(std::string ssid, std::string pass, int try_times) {
     connecting = false;
   }
   return false;
+}
+
+std::string millistring() {
+      char buf[40];
+      ltoa(millis(), buf, 10);
+      return std::string(buf);
 }
 
 void send_client_update(boolean love_state, boolean happy_state, boolean sad_state, boolean anger_state, boolean fear_state) {
@@ -84,28 +60,14 @@ void send_client_update(boolean love_state, boolean happy_state, boolean sad_sta
       uint8_t fear = fear_state;
       uint8_t mood_bits = (love << 4) | (happy << 3) | (sad << 2) | (anger << 1) | (fear << 0);
 
-      char buf[40];
-      ltoa(millis(), buf, 10);
-
-      char s[4];
-      snprintf(s, 4, "%d", mood_bits);
-      
-      udp.print((std::string("CLIENT_UPDATE ") + std::string(buf) + std::string(" ") + std::string(s)).c_str());
+      udp.printf("CLIENT_UPDATE %u %u", millis(), mood_bits);
    }
 }
 
-
+unsigned long long last_server_time = 0;
 
 void setup_wifi(std::string ssid, std::string password) {
-  Serial.begin(115200);
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid.c_str(), password.c_str());
-  if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-    Serial.println("WiFi Failed");
-    while (1) {
-      delay(1000);
-    }
-  }
+  wifi_connected = try_wifi_connect(ssid, password, 5);
   if (udp.connect(IPAddress(142, 93, 30, 237), 1234)) {
     Serial.println("UDP connected");
     udp.onPacket([] (AsyncUDPPacket packet) {
@@ -124,11 +86,27 @@ void setup_wifi(std::string ssid, std::string password) {
       Serial.print(", Data: ");
       Serial.write(packet.data(), packet.length());
       Serial.println();
-      //reply to the client
-      packet.printf("Got %u bytes of data", packet.length());
+
+      char data_s[packet.length() + 1];
+      strncpy(data_s, (char*)packet.data(), packet.length());
+      data_s[packet.length()] = '\0';
+      char * pch = strtok(data_s, " ");
+      char * strings[6];
+      int i = 0;
+      while (pch != NULL) {
+        Serial.printf("'%s'\n", pch);
+        strings[i++] = pch;
+        pch = strtok(NULL, " ");
+      }
+
+      if (strings[0] == "SERVER_UPDATE") {
+        //reply to the client
+        // return uuid (strings[2])
+        packet.printf("GOT_UPDATE %u %s", millis(), strings[2]);
+        // process data
+        Serial.println(strings[])
+      }
     });
-    //Send unicast
-    udp.print("CLIENT_UPDATE 0 60 50");
   }
 }
 

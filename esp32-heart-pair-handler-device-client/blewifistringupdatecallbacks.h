@@ -1,7 +1,7 @@
 #ifndef WIFI_STRING_UPDATER_H
 #define WIFI_STRING_UPDATER_H
 
-/*#include "wifi_setup.h"
+#include "wifi_setup.h"
 #include <Arduino.h>
 
 class BLEWifiStringUpdaterCallbacks: public BLECharacteristicCallbacks {
@@ -31,5 +31,5 @@ BLECharacteristic* create_wifi_string_characteristic(BLEService *pService, std::
   pCharacteristic->setCallbacks(new BLEWifiStringUpdaterCallbacks(s));
   return pCharacteristic;
 }
-*/
+
 #endif
