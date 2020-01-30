@@ -8,6 +8,7 @@
 #include "opmode.h"
 #include "hsv2rgb.h"
 #include "eeprom_save.h"
+#include "blemoodbitstringupdatercallbacks.h"
 
 #define NUM_HEART_LEDS 27
 #define HEART_LEDS_DATA_PIN 26
@@ -32,6 +33,8 @@ TouchSensor sad_mood_sensor = TouchSensor(BUTTON_INPUT_1);
 TouchSensor fear_mood_sensor = TouchSensor(BUTTON_INPUT_2);
 TouchSensor anger_mood_sensor = TouchSensor(BUTTON_INPUT_3);
 
+uint16_t mood_bitstring = generate_mood_bitstring(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
 void setup() {
   Serial.begin(115200);
   load_settings();
@@ -45,12 +48,14 @@ void setup() {
   setup_wifi("MateRS", "6199c34010c8");
   FastLED.setBrightness(255);
   setup_ble_gatt();
+  esp_log_level_set("*", ESP_LOG_DEBUG);
 }
 
 #define GT_STEP 3
 bool previous_held = false;
 bool previous_prom = false;
 byte gt = 0;
+bool notified = true;
 void loop() {
   // insert a delay to keep the framerate modest
   FastLED.delay(1000/FRAMES_PER_SECOND);
@@ -68,7 +73,28 @@ void loop() {
         fear_mood_sensor.latched,
         anger_mood_sensor.latched);
     }
+
+    uint16_t new_mood_bitstring = generate_mood_bitstring(love_hold_sensor.pressed,
+                                                          happy_mood_sensor.latched,
+                                                          sad_mood_sensor.latched,
+                                                          fear_mood_sensor.latched,
+                                                          anger_mood_sensor.latched,
+                                                          remote_love,
+                                                          remote_happy,
+                                                          remote_sad,
+                                                          remote_fear,
+                                                          remote_anger);
+    if (new_mood_bitstring != mood_bitstring && BLEDeviceConnected) {
+      notified = false;
+      if (BLEDeviceConnected) {
+        mood_bitstring = new_mood_bitstring;
+        mood_bitstring_characteristic->setValue(mood_bitstring);
+        mood_bitstring_characteristic->notify();
+        notified = true;
+      }
+    }
   }
+  
 
   CHSV love_color_hsv = rgb2hsv_approximate(loveColor);
   
@@ -151,19 +177,6 @@ void loop() {
   }
 
   FastLED.show();
-}
-
-uint16_t generate_mood_bitmap(bool l1, bool l2, bool l3, bool l4, bool l5, bool r1, bool r2, bool r3, bool r4, bool r5) {
-  return ((uint16_t)l1 << 9) &
-         ((uint16_t)l2 << 8) &
-         ((uint16_t)l3 << 7) &
-         ((uint16_t)l4 << 6) &
-         ((uint16_t)l5 << 5) &
-         ((uint16_t)r1 << 4) &
-         ((uint16_t)r2 << 3) &
-         ((uint16_t)r3 << 2) &
-         ((uint16_t)r4 << 1) &
-         ((uint16_t)r5 << 0);
 }
 
 CRGB ifThenColor(bool condition, CRGB color) {

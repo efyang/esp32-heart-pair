@@ -15,6 +15,7 @@
 #include "blewifistringupdatecallbacks.h"
 #include "bleconfigsaveswitch.h"
 #include "blewificonnectswitch.h"
+#include "blemoodbitstringupdatercallbacks.h"
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
 
@@ -26,8 +27,8 @@
 #define FEAR_MOOD_COLOR_CHARACTERISTIC_UUID "c7dc21a4-3114-4ab2-8254-ef3c91b97b32"
 #define ANGER_MOOD_COLOR_CHARACTERISTIC_UUID "838fc38a-df30-42cb-9b55-2f3596dd0506"
 
-#define MOOD_BITMAP_CHARACTERISTIC_UUID "cc6d6901-70d8-43e0-af2b-d5bd0eacf32a"
-BLECharacteristic *mood_bitmap_characteristic; // int, 10 bits for local and remote
+#define MOOD_BITSTRING_CHARACTERISTIC_UUID "cc6d6901-70d8-43e0-af2b-d5bd0eacf32a"
+BLECharacteristic *mood_bitstring_characteristic; // int, 10 bits for local and remote
 
 #define LAMP_COLOR_CHARACTERISTIC_UUID "c367b354-c1cf-43d6-8c3f-24288fc231ce"
 
@@ -43,11 +44,23 @@ BLECharacteristic *mood_bitmap_characteristic; // int, 10 bits for local and rem
 
 #define MASTER_BRIGHTNESS_CHARACTERISTIC_UUID "69ae6147-39d8-4d0e-8a5a-12e221041015"
 
+bool BLEDeviceConnected = false;
+class MyServerCallbacks: public BLEServerCallbacks {
+    void onConnect(BLEServer* pServer) {
+      BLEDeviceConnected = true;
+    };
+
+    void onDisconnect(BLEServer* pServer) {
+      BLEDeviceConnected = false;
+    }
+};
+
 void setup_ble_gatt() {
   Serial.println("Starting BLE work!");
 
   BLEDevice::init("ESP32 Heart Pair");
   BLEServer *pServer = BLEDevice::createServer();
+  pServer->setCallbacks(new MyServerCallbacks());
   BLEService *pService = pServer->createService(BLEUUID(SERVICE_UUID), 30, 0);
 
   
@@ -59,12 +72,7 @@ void setup_ble_gatt() {
 
   BLECharacteristic *pLampColorCharacteristic = create_mood_color_characteristic(pService, LAMP_COLOR_CHARACTERISTIC_UUID, &lampColor);
 
-  mood_bitmap_characteristic = pService->createCharacteristic(
-    MOOD_BITMAP_CHARACTERISTIC_UUID,
-    BLECharacteristic::PROPERTY_READ |
-    BLECharacteristic::PROPERTY_NOTIFY |
-    BLECharacteristic::PROPERTY_INDICATE
-  );
+  mood_bitstring_characteristic = create_mood_bitstring_characteristic(pService, MOOD_BITSTRING_CHARACTERISTIC_UUID, generate_mood_bitstring(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 
   BLECharacteristic *pModeCharacteristic = create_mode_characteristic(pService, MODE_CHARACTERISTIC_UUID, &opmode);
 
