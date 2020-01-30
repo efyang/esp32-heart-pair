@@ -42,8 +42,8 @@ void setup() {
   sad_mood_sensor.init();
   fear_mood_sensor.init();
   anger_mood_sensor.init();
-  FastLED.setBrightness(255);
   setup_wifi("MateRS", "6199c34010c8");
+  FastLED.setBrightness(255);
   setup_ble_gatt();
 }
 

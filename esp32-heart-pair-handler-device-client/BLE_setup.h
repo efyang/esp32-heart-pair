@@ -14,6 +14,7 @@
 #include "blemodeupdatercallbacks.h"
 #include "blewifistringupdatecallbacks.h"
 #include "bleconfigsaveswitch.h"
+#include "blewificonnectswitch.h"
 // See the following for generating UUIDs:
 // https://www.uuidgenerator.net/
 
@@ -31,6 +32,9 @@
 
 #define WIFI_SSID_CHARACTERISTIC_UUID "1cea50e2-c88d-4bbb-9ae3-6b637cee1041"
 #define WIFI_PASS_CHARACTERISTIC_UUID "37f294c1-c9c7-48c8-b944-4b453725f8ea"
+#define WIFI_USER_CHARACTERISTIC_UUID "8dead309-383e-4725-ac09-a6cbc0e5bef7"
+#define WIFI_MODE_CHARACTERISTIC_UUID "ef2d5ed0-af34-4089-8c1f-330b156bbe6b"
+#define WIFI_CONNECT_SWITCH_CHARACTERISTIC_UUID "991cde05-b892-497f-ad4a-0768b59cfbba"
 
 #define SAVE_SWITCH_CHARACTERISTIC_UUID "eb02ef6a-07cd-4bdb-babe-3375579dc9af"
 
@@ -54,6 +58,9 @@ void setup_ble_gatt() {
 
   BLECharacteristic *pWifiSSIDCharacteristic = create_wifi_string_characteristic(pService, WIFI_SSID_CHARACTERISTIC_UUID, &wifi_ssid);
   BLECharacteristic *pWifiPassCharacteristic = create_wifi_string_characteristic(pService, WIFI_PASS_CHARACTERISTIC_UUID, &wifi_pass);
+  BLECharacteristic *pWifiUserCharacteristic = create_wifi_string_characteristic(pService, WIFI_USER_CHARACTERISTIC_UUID, &wifi_user);
+  BLECharacteristic *pWifiModeCharacteristic = create_mode_characteristic(pService, WIFI_MODE_CHARACTERISTIC_UUID, &wifi_mode);
+  BLECharacteristic *pWifiConnectSwitchCharacteristic = create_wifi_connect_switch_characteristic(pService, WIFI_CONNECT_SWITCH_CHARACTERISTIC_UUID, &wifi_connected);
 
   BLECharacteristic *pConfigSaveSwitchCharacteristic = create_config_save_switch_characteristic(pService, SAVE_SWITCH_CHARACTERISTIC_UUID, &config_save_switch);
 

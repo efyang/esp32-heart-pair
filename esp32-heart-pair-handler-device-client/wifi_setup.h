@@ -2,12 +2,20 @@
 #define WIFI_SETUP_H
 
 #include <WiFi.h>
+#include "esp_wpa2.h"
 #include <AsyncUDP.h>
 #include <Arduino.h>
+
+#define WIFI_TRY_CONNECT_TIMES 5
 
 AsyncUDP udp;
 std::string wifi_ssid = "";
 std::string wifi_pass = "";
+std::string wifi_user = "";
+uint8_t WIFI_MODE_NORMAL = 0;
+uint8_t WIFI_MODE_EDUROAM = 1;
+uint8_t wifi_mode = WIFI_MODE_NORMAL;
+
 boolean wifi_connected = false;
 boolean connecting = false;
 
@@ -19,7 +27,44 @@ boolean remote_fear = false;
 
 boolean try_wifi_connect(std::string ssid, std::string pass, int try_times) {
   if (!connecting) {
+    WiFi.disconnect(true);
     WiFi.mode(WIFI_STA);
+    boolean is_connected = false;
+    int tries = 1;
+    Serial.print("connecting to ");
+    Serial.print(wifi_ssid.c_str());
+    Serial.print(" with password: ");
+    Serial.println(wifi_pass.c_str());
+    while (!is_connected && (tries <= try_times)) {
+      WiFi.begin(ssid.c_str(), pass.c_str());
+      connecting = true;
+      if (WiFi.waitForConnectResult() != WL_CONNECTED) {
+        tries += 1;
+        Serial.println("wifi failed");
+      } else {
+        is_connected = true;
+        Serial.println("wifi connected");
+
+        connecting = false;
+        return true;
+      }
+    }
+    connecting = false;
+  }
+  return false;
+}
+
+boolean try_wifi_connect_wpa2_enterprise(std::string ssid, std::string user, std::string pass, int try_times) {
+  if (!connecting) {
+    WiFi.disconnect(true);
+    WiFi.mode(WIFI_STA);
+
+    esp_wifi_sta_wpa2_ent_set_identity((uint8_t *)wifi_user.c_str(), wifi_user.length()); //provide identity
+    esp_wifi_sta_wpa2_ent_set_username((uint8_t *)wifi_user.c_str(), wifi_user.length()); //provide username --> identity and username is same
+    esp_wifi_sta_wpa2_ent_set_password((uint8_t *)wifi_pass.c_str(), wifi_pass.length()); //provide password
+    esp_wpa2_config_t conf = WPA2_CONFIG_INIT_DEFAULT(); //set config settings to default
+    esp_wifi_sta_wpa2_ent_enable(&conf); //set config settings to enable function
+
     boolean is_connected = false;
     int tries = 1;
     Serial.print("connecting to ");
@@ -66,8 +111,8 @@ void send_client_update(boolean love_state, boolean happy_state, boolean sad_sta
 
 long long last_server_time = 0;
 
-void setup_wifi(std::string ssid, std::string password) {
-  wifi_connected = try_wifi_connect(ssid, password, 5);
+
+void setup_udp_callback() {
   if (udp.connect(IPAddress(142, 93, 30, 237), 1234)) {
     Serial.println("UDP connected");
     udp.onPacket([] (AsyncUDPPacket packet) {
@@ -123,6 +168,17 @@ void setup_wifi(std::string ssid, std::string password) {
       }
     });
   }
+}
+
+
+void setup_wifi_wpa2_enterprise(std::string ssid, std::string user, std::string password) {
+  wifi_connected = try_wifi_connect_wpa2_enterprise(ssid, user, password, WIFI_TRY_CONNECT_TIMES);
+  setup_udp_callback();
+}
+
+void setup_wifi(std::string ssid, std::string password) {
+  wifi_connected = try_wifi_connect(ssid, password, WIFI_TRY_CONNECT_TIMES);
+  setup_udp_callback();
 }
 
 #endif

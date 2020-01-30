@@ -16,9 +16,6 @@ class BLEWifiStringUpdaterCallbacks: public BLECharacteristicCallbacks {
 
     void onWrite(BLECharacteristic* pCharacteristic) {
       *s_ref = pCharacteristic->getValue();
-      Serial.println("Trying...");
-      wifi_connected = try_wifi_connect(wifi_ssid, wifi_pass, 2);
-      Serial.println("Done trying");
     }
 };
 
