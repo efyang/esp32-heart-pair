@@ -26,6 +26,9 @@
 #define FEAR_MOOD_COLOR_CHARACTERISTIC_UUID "c7dc21a4-3114-4ab2-8254-ef3c91b97b32"
 #define ANGER_MOOD_COLOR_CHARACTERISTIC_UUID "838fc38a-df30-42cb-9b55-2f3596dd0506"
 
+#define MOOD_BITMAP_CHARACTERISTIC_UUID "cc6d6901-70d8-43e0-af2b-d5bd0eacf32a"
+BLECharacteristic *mood_bitmap_characteristic; // int, 10 bits for local and remote
+
 #define LAMP_COLOR_CHARACTERISTIC_UUID "c367b354-c1cf-43d6-8c3f-24288fc231ce"
 
 #define MODE_CHARACTERISTIC_UUID "ae2c2e59-fb28-4737-9144-7dc72d69ccf4"
@@ -34,9 +37,11 @@
 #define WIFI_PASS_CHARACTERISTIC_UUID "37f294c1-c9c7-48c8-b944-4b453725f8ea"
 #define WIFI_USER_CHARACTERISTIC_UUID "8dead309-383e-4725-ac09-a6cbc0e5bef7"
 #define WIFI_MODE_CHARACTERISTIC_UUID "ef2d5ed0-af34-4089-8c1f-330b156bbe6b"
-#define WIFI_CONNECT_SWITCH_CHARACTERISTIC_UUID "991cde05-b892-497f-ad4a-0768b59cfbba"
+// #define WIFI_CONNECT_SWITCH_CHARACTERISTIC_UUID "991cde05-b892-497f-ad4a-0768b59cfbba"
 
 #define SAVE_SWITCH_CHARACTERISTIC_UUID "eb02ef6a-07cd-4bdb-babe-3375579dc9af"
+
+#define MASTER_BRIGHTNESS_CHARACTERISTIC_UUID "69ae6147-39d8-4d0e-8a5a-12e221041015"
 
 void setup_ble_gatt() {
   Serial.println("Starting BLE work!");
@@ -54,15 +59,28 @@ void setup_ble_gatt() {
 
   BLECharacteristic *pLampColorCharacteristic = create_mood_color_characteristic(pService, LAMP_COLOR_CHARACTERISTIC_UUID, &lampColor);
 
+  mood_bitmap_characteristic = pService->createCharacteristic(
+    MOOD_BITMAP_CHARACTERISTIC_UUID,
+    BLECharacteristic::PROPERTY_READ |
+    BLECharacteristic::PROPERTY_NOTIFY |
+    BLECharacteristic::PROPERTY_INDICATE
+  );
+
   BLECharacteristic *pModeCharacteristic = create_mode_characteristic(pService, MODE_CHARACTERISTIC_UUID, &opmode);
 
   BLECharacteristic *pWifiSSIDCharacteristic = create_wifi_string_characteristic(pService, WIFI_SSID_CHARACTERISTIC_UUID, &wifi_ssid);
   BLECharacteristic *pWifiPassCharacteristic = create_wifi_string_characteristic(pService, WIFI_PASS_CHARACTERISTIC_UUID, &wifi_pass);
   BLECharacteristic *pWifiUserCharacteristic = create_wifi_string_characteristic(pService, WIFI_USER_CHARACTERISTIC_UUID, &wifi_user);
   BLECharacteristic *pWifiModeCharacteristic = create_mode_characteristic(pService, WIFI_MODE_CHARACTERISTIC_UUID, &wifi_mode);
-  BLECharacteristic *pWifiConnectSwitchCharacteristic = create_wifi_connect_switch_characteristic(pService, WIFI_CONNECT_SWITCH_CHARACTERISTIC_UUID, &wifi_connected);
+  // BLECharacteristic *pWifiConnectSwitchCharacteristic = create_wifi_connect_switch_characteristic(pService, WIFI_CONNECT_SWITCH_CHARACTERISTIC_UUID, &wifi_connected);
 
   BLECharacteristic *pConfigSaveSwitchCharacteristic = create_config_save_switch_characteristic(pService, SAVE_SWITCH_CHARACTERISTIC_UUID, &config_save_switch);
+
+  BLECharacteristic *pMasterBrightnessCharacteristic = pService->createCharacteristic(
+                                         MASTER_BRIGHTNESS_CHARACTERISTIC_UUID,
+                                         BLECharacteristic::PROPERTY_READ |
+                                         BLECharacteristic::PROPERTY_WRITE
+                                       );
 
   pService->start();
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();

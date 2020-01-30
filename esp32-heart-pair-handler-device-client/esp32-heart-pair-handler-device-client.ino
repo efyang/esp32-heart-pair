@@ -110,6 +110,11 @@ void loop() {
       set_all_leds(button_leds, NUM_BUTTON_LEDS, CRGB::Black);
       set_all_leds(heart_leds, NUM_HEART_LEDS, lampColor);
       break;
+
+    case LAMP_MODE_WITH_BUTTONS:
+      set_all_leds(button_leds, NUM_BUTTON_LEDS, lampColor);
+      set_all_leds(heart_leds, NUM_HEART_LEDS, lampColor);
+      break;
       
     case CONFIGURE_MODE:
       button_leds[0] = happyColor;
@@ -128,6 +133,9 @@ void loop() {
       }
       prom_loop(heart_leds, NUM_HEART_LEDS);
       break;
+
+    case DEMO_MODE:
+      break;
       
     case OFF_MODE:
     default:
@@ -143,6 +151,19 @@ void loop() {
   }
 
   FastLED.show();
+}
+
+uint16_t generate_mood_bitmap(bool l1, bool l2, bool l3, bool l4, bool l5, bool r1, bool r2, bool r3, bool r4, bool r5) {
+  return ((uint16_t)l1 << 9) &
+         ((uint16_t)l2 << 8) &
+         ((uint16_t)l3 << 7) &
+         ((uint16_t)l4 << 6) &
+         ((uint16_t)l5 << 5) &
+         ((uint16_t)r1 << 4) &
+         ((uint16_t)r2 << 3) &
+         ((uint16_t)r3 << 2) &
+         ((uint16_t)r4 << 1) &
+         ((uint16_t)r5 << 0);
 }
 
 CRGB ifThenColor(bool condition, CRGB color) {
