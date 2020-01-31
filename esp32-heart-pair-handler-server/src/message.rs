@@ -57,9 +57,9 @@ impl SendMessage {
 // message, send time
 pub fn parse_datagram(datagram: &[u8]) -> Result<(RecvMessage, usize), Error> {
     let datagram_s = CStr::from_bytes_with_nul(datagram)?.to_str()?.trim().to_owned();
-    println!("Got string: {}", datagram_s);
+    // println!("Got string: {}", datagram_s);
     let split_s = datagram_s.split(" ").collect::<Vec<&str>>();
-    println!("strings: {:?}", split_s);
+    // println!("strings: {:?}", split_s);
     let time: usize = split_s[1].parse()?;
     match split_s[0] {
         "TRIGGER" => {

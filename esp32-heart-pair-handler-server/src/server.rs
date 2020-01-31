@@ -61,7 +61,7 @@ impl Server {
         self.buffer = [0; DATAGRAM_MAX_SIZE];
         match self.socket.recv_from(&mut self.buffer) {
             Ok((bytes_read, address)) => {
-                println!("GOT {} bytes from address: {}", bytes_read, address);
+                /*println!("GOT {} bytes from address: {}", bytes_read, address);*/
                 // 1 extra byte to nul terminate
                 let (message, send_time) = parse_datagram(&self.buffer[..bytes_read + 1])?;
 
@@ -72,12 +72,13 @@ impl Server {
                     self.handle_message(message, address)?;
                 } // otherwise we throw it out
 
+                /*
                 println!("HANDLED DATAGRAM... NEW STATE:");
                 dbg!(&self.clients);
                 dbg!(&self.last_message_times);
                 dbg!(&self.last_clean_time);
                 dbg!(self.trigger_state);
-                println!("");
+                println!("");*/
             }
             Err(ref e) if e.kind() == ErrorKind::WouldBlock => {},
             Err(e) => {
