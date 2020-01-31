@@ -6,6 +6,8 @@
 #include <AsyncUDP.h>
 #include <Arduino.h>
 #include "FastLED.h"
+#include <NTPClient.h>
+#include <WiFiUdp.h>
 
 #define WIFI_TRY_CONNECT_TIMES 3
 
@@ -25,6 +27,12 @@ boolean remote_happy = false;
 boolean remote_sad = false;
 boolean remote_anger = false;
 boolean remote_fear = false;
+
+WiFiUDP ntpUDP;
+// jan 1, 2020
+unsigned long time_epoch_seconds = 1577836800;
+unsigned long time_start_millis = time_epoch_seconds * 1000;
+NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, ((unsigned long) 1000) * 60 * 60 * 60 * 24);
 
 boolean try_wifi_connect(std::string ssid, std::string pass, int try_times) {
   if (!connecting && ssid.length() > 1) {
@@ -110,7 +118,7 @@ void send_client_update(boolean love_state, boolean happy_state, boolean sad_sta
       uint8_t anger = anger_state;
       uint8_t mood_bits = (love << 4) | (happy << 3) | (sad << 2) | (fear << 1) | (anger << 0);
 
-      udp.printf("CLIENT_UPDATE %u %u", millis(), mood_bits);
+      udp.printf("CLIENT_UPDATE %u %u", millis() + time_start_millis, mood_bits);
    }
 }
 
@@ -176,15 +184,29 @@ void setup_udp_callback() {
 }
 
 
+void on_successful_connection() {
+  setup_udp_callback();
+  timeClient.begin();
+  timeClient.update();
+  time_start_millis = 1000 * (timeClient.getEpochTime() - time_epoch_seconds);
+  Serial.println("ntp time:");
+  Serial.println(timeClient.getFormattedTime());
+}
+
 void setup_wifi_wpa2_enterprise(std::string ssid, std::string user, std::string password) {
   wifi_connected = try_wifi_connect_wpa2_enterprise(ssid, user, password, WIFI_TRY_CONNECT_TIMES);
-  setup_udp_callback();
+  if (wifi_connected) {
+    on_successful_connection();
+  }
 }
 
 void setup_wifi(std::string ssid, std::string password) {
   wifi_connected = try_wifi_connect(ssid, password, WIFI_TRY_CONNECT_TIMES);
-  setup_udp_callback();
+  if (wifi_connected) {
+    on_successful_connection();
+  }
 }
+
 
 void try_wifi_connect(CRGB* heart_leds) {
   Serial.println("Try wifi connect now");

@@ -65,6 +65,10 @@ impl Server {
                 // 1 extra byte to nul terminate
                 let (message, send_time) = parse_datagram(&self.buffer[..bytes_read + 1])?;
 
+                self.add_client(&address);
+                // update last received time
+                self.clients.get_mut(&address).unwrap().last_message_recv_time = SystemTime::now();
+
                 // we only want messages that are in order
                 if self.message_in_order(address, send_time) {
                     // update with the new message times
@@ -100,13 +104,11 @@ impl Server {
             }
             RecvMessage::GotUpdate(uuid) => {
                 let current_time = SystemTime::now();
-                self.add_client(&address);
                 self.clients.get_mut(&address).unwrap().recalculate_latency_got_ack(uuid, current_time);
             }
             RecvMessage::ClientUpdate(love, happy, sad, fear, anger) => {
                 let current_time = SystemTime::now();
                 let uuid = Uuid::new_v4();
-                self.add_client(&address);
                 let forward = SendMessage::ServerUpdate(current_time, uuid, love, happy, sad, fear, anger, self.trigger_state, self.clients[&address].latency());
                 let forward_s = CString::new(forward.serialize()?)?;
                 for (client_address, client_info) in self.clients.iter_mut().filter(|(&k, _)| k != address) {
@@ -136,6 +138,15 @@ impl Server {
             for client_info in self.clients.values_mut() {
                 client_info.clean_messages();
             }
+
+            // also remove clients who have been absent for 60 seconds
+            self.clients.retain(|key, client| {
+                let keep = !current_time.duration_since(client.last_message_recv_time).ok().map_or(false, |t| t > AWAIT_ABSENCE_MAX_TIME);
+                if !keep {
+                    println!("discard client: {}", key);
+                }
+                return keep;
+            })
         }
     }
 }
@@ -144,14 +155,17 @@ impl Server {
 struct PairClient {
     latency: Duration,
     await_ack_message_queue: HashMap<Uuid, SystemTime>,
+    last_message_recv_time: SystemTime,
 }
 
 const AWAIT_ACK_MAX_TIME: Duration = Duration::from_millis(500);
+const AWAIT_ABSENCE_MAX_TIME: Duration = Duration::from_secs(60);
 impl PairClient {
     fn new() -> PairClient {
         PairClient {
             latency: Duration::from_millis(0),
             await_ack_message_queue: HashMap::new(),
+            last_message_recv_time: SystemTime::now(),
         }
     }
 
