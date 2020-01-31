@@ -48,7 +48,7 @@ void setup() {
   setup_wifi("MateRS", "6199c34010c8");
   FastLED.setBrightness(255);
   setup_ble_gatt();
-  esp_log_level_set("*", ESP_LOG_DEBUG);
+  // esp_log_level_set("*", ESP_LOG_DEBUG);
 }
 
 #define GT_STEP 3
@@ -56,6 +56,7 @@ bool previous_held = false;
 bool previous_prom = false;
 byte gt = 0;
 bool notified = true;
+uint8_t previous_master_brightness = 255;
 void loop() {
   // insert a delay to keep the framerate modest
   FastLED.delay(1000/FRAMES_PER_SECOND);
@@ -94,7 +95,11 @@ void loop() {
       }
     }
   }
-  
+
+  if (master_brightness != previous_master_brightness) {
+    previous_master_brightness = master_brightness;
+    FastLED.setBrightness(master_brightness);
+  }
 
   CHSV love_color_hsv = rgb2hsv_approximate(loveColor);
   

@@ -8,6 +8,8 @@ Preferences prefs;
 
 boolean config_save_switch = false;
 
+uint8_t opmode_tmp[1];
+uint8_t master_brightness_tmp[1];
 void save_settings(CRGB love_color, CRGB happy_color, CRGB sad_color, CRGB fear_color, CRGB anger_color, CRGB lamp_color, uint8_t opmode) {
   prefs.begin("settings", false);
   prefs.putBool("valid", true);
@@ -17,9 +19,10 @@ void save_settings(CRGB love_color, CRGB happy_color, CRGB sad_color, CRGB fear_
   prefs.putBytes("fear_color", &fear_color, sizeof(CRGB));
   prefs.putBytes("anger_color", &anger_color, sizeof(CRGB));
   prefs.putBytes("lamp_color", &lamp_color, sizeof(CRGB));
-  uint8_t tmp[1];
-  tmp[0] = opmode;
-  prefs.putBytes("opmode", tmp, 1);
+  opmode_tmp[0] = opmode;
+  prefs.putBytes("opmode", opmode_tmp, 1);
+  master_brightness_tmp[0] = master_brightness;
+  prefs.putBytes("brightness", master_brightness_tmp, 1);
   prefs.end();
 }
 
@@ -41,9 +44,10 @@ void load_settings() {
     fearColor = load_color("fear_color");
     angerColor = load_color("anger_color");
     lampColor = load_color("lamp_color");
-    uint8_t tmp[1];
-    prefs.getBytes("opmode", tmp, 1);
-    opmode = tmp[0];
+    prefs.getBytes("opmode", opmode_tmp, 1);
+    opmode = opmode_tmp[0];
+    prefs.getBytes("brightness", master_brightness_tmp, 1);
+    master_brightness = master_brightness_tmp[0];
   }
   prefs.end();
 }

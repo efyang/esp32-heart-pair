@@ -84,11 +84,7 @@ void setup_ble_gatt() {
 
   BLECharacteristic *pConfigSaveSwitchCharacteristic = create_config_save_switch_characteristic(pService, SAVE_SWITCH_CHARACTERISTIC_UUID, &config_save_switch);
 
-  BLECharacteristic *pMasterBrightnessCharacteristic = pService->createCharacteristic(
-                                         MASTER_BRIGHTNESS_CHARACTERISTIC_UUID,
-                                         BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_WRITE
-                                       );
+  BLECharacteristic *pMasterBrightnessCharacteristic = create_mode_characteristic(pService, MASTER_BRIGHTNESS_CHARACTERISTIC_UUID, &master_brightness);
 
   pService->start();
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();

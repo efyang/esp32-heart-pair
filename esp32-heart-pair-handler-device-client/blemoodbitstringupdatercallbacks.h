@@ -22,8 +22,7 @@ BLECharacteristic * create_mood_bitstring_characteristic(BLEService *pService, s
   BLECharacteristic *pCharacteristic = pService->createCharacteristic(
                                          uuid,
                                          BLECharacteristic::PROPERTY_READ |
-                                         BLECharacteristic::PROPERTY_NOTIFY |
-                                         BLECharacteristic::PROPERTY_INDICATE
+                                         BLECharacteristic::PROPERTY_NOTIFY
                                        );
   pCharacteristic->setValue(mood_bitstring);
   return pCharacteristic;

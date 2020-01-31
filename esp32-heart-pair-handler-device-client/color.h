@@ -21,6 +21,8 @@ CRGB lampColor = DEFAULT_LAMP_COLOR;
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
+uint8_t master_brightness = 255;
+
 byte heartbeat(byte t) {
   byte w = 218;
   byte m = (sin8(2 * (t + w)) + sin8(t + w)) / 2;
