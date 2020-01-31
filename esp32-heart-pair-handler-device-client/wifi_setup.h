@@ -7,7 +7,7 @@
 #include <Arduino.h>
 #include "FastLED.h"
 
-#define WIFI_TRY_CONNECT_TIMES 5
+#define WIFI_TRY_CONNECT_TIMES 3
 
 AsyncUDP udp;
 std::string wifi_ssid = "";

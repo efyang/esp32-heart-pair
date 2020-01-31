@@ -38,6 +38,9 @@ uint16_t mood_bitstring = generate_mood_bitstring(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 void setup() {
   Serial.begin(115200);
+  WiFi.mode(WIFI_MODE_STA);
+  Serial.print("WiFi MAC: ");
+  Serial.println(WiFi.macAddress());
   load_settings();
   FastLED.addLeds<WS2812B, BUTTON_LEDS_DATA_PIN, GRB>(button_leds, NUM_BUTTON_LEDS).setCorrection(CoolWhiteFluorescent);
   FastLED.addLeds<WS2812B, HEART_LEDS_DATA_PIN, GRB>(heart_leds, NUM_HEART_LEDS).setCorrection(CoolWhiteFluorescent);
