@@ -17,7 +17,7 @@ CRGB angerColor = DEFAULT_ANGER_COLOR;
 
 CRGB lampColor = DEFAULT_LAMP_COLOR;
 
-#define FRAMES_PER_SECOND 120
+#define FRAMES_PER_SECOND 240
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 

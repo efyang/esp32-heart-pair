@@ -8,6 +8,7 @@ class TouchSensor {
   public:
     bool latched = false;
     bool pressed = false;
+    bool previously_pressed = false;
 
     TouchSensor(int input_pin) {
       pin = input_pin;
@@ -18,6 +19,7 @@ class TouchSensor {
     }
 
     void update_state() {
+        previously_pressed = pressed;
         pressed = digitalRead(pin);
         if (!pressed) {
           let_go = true;
