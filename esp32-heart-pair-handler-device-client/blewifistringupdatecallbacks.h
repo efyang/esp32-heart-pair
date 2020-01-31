@@ -7,15 +7,23 @@
 class BLEWifiStringUpdaterCallbacks: public BLECharacteristicCallbacks {
   private:
     std::string* s_ref;
+    unsigned long last_write_time;
   public:
     BLEWifiStringUpdaterCallbacks(std::string* val_ref) {
       s_ref = val_ref;
+      last_write_time = 0;
     }
 
     void onRead(BLECharacteristic* pCharacteristic) {}
 
     void onWrite(BLECharacteristic* pCharacteristic) {
-      *s_ref = pCharacteristic->getValue();
+      if (millis() - last_write_time > 1000) {
+        *s_ref = pCharacteristic->getValue();
+      } else {
+        *s_ref += pCharacteristic->getValue();
+      }
+      last_write_time = millis();
+      Serial.printf("\"%s\"\n", (*s_ref).c_str());
     }
 };
 

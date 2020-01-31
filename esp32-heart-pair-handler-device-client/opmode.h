@@ -10,6 +10,6 @@
 #define OFF_MODE 6
 
 uint8_t opmode = NORMAL_MODE;
-
+uint8_t previous_opmode = opmode;
 
 #endif

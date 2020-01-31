@@ -46,10 +46,13 @@ void setup() {
   sad_mood_sensor.init();
   fear_mood_sensor.init();
   anger_mood_sensor.init();
-  setup_wifi("MateRS", "6199c34010c8");
+  // setup_wifi("MateRS", "6199c34010c8");
   FastLED.setBrightness(255);
-  setup_ble_gatt();
+  setup_ble_gatt(heart_leds);
   // esp_log_level_set("*", ESP_LOG_DEBUG);
+  if (wifi_ssid.length() > 0) {
+    try_wifi_connect(heart_leds);
+  }
 }
 
 // rest of code
@@ -62,6 +65,7 @@ bool notified = true;
 uint8_t previous_master_brightness = 255;
 uint8_t hue_inc_speed = 1;
 void loop() {
+  previous_opmode = opmode;
   // insert a delay to keep the framerate modest
   FastLED.delay(1000/FRAMES_PER_SECOND);
   // put your main code here, to run repeatedly:
@@ -131,6 +135,12 @@ void loop() {
   
   switch (opmode) {
     case NORMAL_MODE:
+      if (previous_opmode == DEMO_MODE) {
+        happy_mood_sensor.latched = false;
+        sad_mood_sensor.latched = false;
+        fear_mood_sensor.latched = false;
+        anger_mood_sensor.latched = false;
+      }
       button_leds[0] = ifThenColor(happy_mood_sensor.latched, happyColor);
       button_leds[1] = ifThenColor(sad_mood_sensor.latched, sadColor);
       button_leds[2] = ifThenColor(fear_mood_sensor.latched, fearColor);
@@ -187,15 +197,21 @@ void loop() {
       break;
 
     case DEMO_MODE:
+       if (previous_opmode != DEMO_MODE) {
+        happy_mood_sensor.latched = false;
+        sad_mood_sensor.latched = false;
+        fear_mood_sensor.latched = false;
+        anger_mood_sensor.latched = false;
+      }
       gPatterns[gCurrentPatternNumber](heart_leds, NUM_HEART_LEDS);
-      EVERY_N_MILLISECONDS( 10 ) { 
+      EVERY_N_MILLISECONDS( 20 ) { 
         if (!happy_mood_sensor.latched) {gHue += hue_inc_speed; }
       } // slowly cycle the "base color" through the rainbow
 
       if (sad_mood_sensor.pressed && !sad_mood_sensor.previously_pressed) { nextPattern(); }
       if (fear_mood_sensor.pressed && !fear_mood_sensor.previously_pressed) { previousPattern(); }
       if (anger_mood_sensor.pressed && !anger_mood_sensor.previously_pressed) {
-        if (hue_inc_speed >= 10) {
+        if (hue_inc_speed >= 5) {
           hue_inc_speed = 1;
         } else {
           hue_inc_speed += 1;

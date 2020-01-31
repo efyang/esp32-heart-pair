@@ -5,6 +5,7 @@
 #include "esp_wpa2.h"
 #include <AsyncUDP.h>
 #include <Arduino.h>
+#include "FastLED.h"
 
 #define WIFI_TRY_CONNECT_TIMES 5
 
@@ -26,15 +27,15 @@ boolean remote_anger = false;
 boolean remote_fear = false;
 
 boolean try_wifi_connect(std::string ssid, std::string pass, int try_times) {
-  if (!connecting) {
+  if (!connecting && ssid.length() > 1) {
     WiFi.disconnect(true);
     WiFi.mode(WIFI_STA);
     boolean is_connected = false;
     int tries = 1;
     Serial.print("connecting to ");
-    Serial.print(wifi_ssid.c_str());
+    Serial.print(ssid.c_str());
     Serial.print(" with password: ");
-    Serial.println(wifi_pass.c_str());
+    Serial.println(pass.c_str());
     while (!is_connected && (tries <= try_times)) {
       WiFi.begin(ssid.c_str(), pass.c_str());
       connecting = true;
@@ -49,13 +50,14 @@ boolean try_wifi_connect(std::string ssid, std::string pass, int try_times) {
         return true;
       }
     }
+    WiFi.disconnect(true);
     connecting = false;
   }
   return false;
 }
 
 boolean try_wifi_connect_wpa2_enterprise(std::string ssid, std::string user, std::string pass, int try_times) {
-  if (!connecting) {
+  if (!connecting && ssid.length() > 1) {
     WiFi.disconnect(true);
     WiFi.mode(WIFI_STA);
 
@@ -68,9 +70,11 @@ boolean try_wifi_connect_wpa2_enterprise(std::string ssid, std::string user, std
     boolean is_connected = false;
     int tries = 1;
     Serial.print("connecting to ");
-    Serial.print(wifi_ssid.c_str());
+    Serial.print(ssid.c_str());
     Serial.print(" with password: ");
-    Serial.println(wifi_pass.c_str());
+    Serial.println(pass.c_str());
+    Serial.print(" with username: ");
+    Serial.println(user.c_str());
     while (!is_connected && (tries <= try_times)) {
       WiFi.begin(ssid.c_str(), pass.c_str());
       connecting = true;
@@ -85,6 +89,7 @@ boolean try_wifi_connect_wpa2_enterprise(std::string ssid, std::string user, std
         return true;
       }
     }
+    WiFi.disconnect(true);
     connecting = false;
   }
   return false;
@@ -179,6 +184,41 @@ void setup_wifi_wpa2_enterprise(std::string ssid, std::string user, std::string 
 void setup_wifi(std::string ssid, std::string password) {
   wifi_connected = try_wifi_connect(ssid, password, WIFI_TRY_CONNECT_TIMES);
   setup_udp_callback();
+}
+
+void try_wifi_connect(CRGB* heart_leds) {
+  Serial.println("Try wifi connect now");
+  Serial.printf("\"%s\"", wifi_ssid.c_str());
+  Serial.printf("\"%s\"", wifi_user.c_str());
+  Serial.printf("\"%s\"", wifi_pass.c_str());
+  heart_leds[13] = CRGB::Red;
+  FastLED.show();
+  if (wifi_mode == WIFI_MODE_NORMAL) {
+    setup_wifi(wifi_ssid, wifi_pass);
+  } else if (wifi_mode == WIFI_MODE_EDUROAM) {
+    setup_wifi_wpa2_enterprise(wifi_ssid, wifi_user, wifi_pass);
+  }
+  if (wifi_connected) {
+    Serial.println("wifi connected");
+    for (int i = 0; i < 5; i++) {
+      heart_leds[13] = CRGB::Green;
+      FastLED.show();
+      delay(500);
+      heart_leds[13] = CRGB::Black;
+      FastLED.show();
+      delay(500);
+    }
+  } else {
+    Serial.println("wifi failed to connect");
+    for (int i = 0; i < 5; i++) {
+      heart_leds[13] = CRGB::Red;
+      FastLED.show();
+      delay(500);
+      heart_leds[13] = CRGB::Black;
+      FastLED.show();
+      delay(500);
+    }
+  }
 }
 
 #endif
