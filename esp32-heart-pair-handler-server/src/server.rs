@@ -124,6 +124,7 @@ impl Server {
     // STOP_TRIGGER are separate and distinct so we never confuse client and trigger messages
     fn add_client(&mut self, address: &SocketAddr) {
         if !self.clients.contains_key(address) {
+            println!("New client: {}", address.to_string());
             self.clients.insert(address.clone(), PairClient::new());
         }
     }
