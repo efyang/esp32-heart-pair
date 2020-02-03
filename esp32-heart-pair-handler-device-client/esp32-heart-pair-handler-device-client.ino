@@ -246,10 +246,13 @@ void loop() {
     previous_prom = false;
   }
 
+  Serial.printf("Status Code: %d\n", WiFi.status());
   if(WiFi.status() != WL_CONNECTED){
     heart_leds[13] = CRGB::Orange;
     FastLED.show();
-    try_wifi_connect();
+    if (wifi_ssid.length() > 0) {
+      try_wifi_connect();
+    }
   }
 
   FastLED.show();
