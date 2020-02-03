@@ -18,7 +18,8 @@ class BLEWifiConnectSwitchCallbacks: public BLECharacteristicCallbacks {
     void onWrite(BLECharacteristic* pCharacteristic) {
       tmp[0] = pCharacteristic->getData()[0];
       wifi_mode = tmp[0];
-      try_wifi_connect(heart_leds);
+      try_wifi_connect();
+      blink_after_wifi_initial_setup(heart_leds);
       pCharacteristic->setValue(tmp, 0);
     }
 };

@@ -54,7 +54,8 @@ void setup() {
   setup_ble_gatt(heart_leds);
   // esp_log_level_set("*", ESP_LOG_DEBUG);
   if (wifi_ssid.length() > 0) {
-    try_wifi_connect(heart_leds);
+    try_wifi_connect();
+    blink_after_wifi_initial_setup(heart_leds);
   }
 }
 
@@ -243,6 +244,12 @@ void loop() {
     previous_prom = true;
   } else {
     previous_prom = false;
+  }
+
+  if(WiFi.status() != WL_CONNECTED){
+    heart_leds[13] = CRGB::Orange;
+    FastLED.show();
+    try_wifi_connect();
   }
 
   FastLED.show();

@@ -1,4 +1,4 @@
-#ifndef WIFI_SETUP_H
+  #ifndef WIFI_SETUP_H
 #define WIFI_SETUP_H
 
 #include <WiFi.h>
@@ -208,18 +208,20 @@ void setup_wifi(std::string ssid, std::string password) {
 }
 
 
-void try_wifi_connect(CRGB* heart_leds) {
+void try_wifi_connect() {
   Serial.println("Try wifi connect now");
   Serial.printf("\"%s\"", wifi_ssid.c_str());
   Serial.printf("\"%s\"", wifi_user.c_str());
   Serial.printf("\"%s\"", wifi_pass.c_str());
-  heart_leds[13] = CRGB::Red;
-  FastLED.show();
+
   if (wifi_mode == WIFI_MODE_NORMAL) {
     setup_wifi(wifi_ssid, wifi_pass);
   } else if (wifi_mode == WIFI_MODE_EDUROAM) {
     setup_wifi_wpa2_enterprise(wifi_ssid, wifi_user, wifi_pass);
   }
+}
+
+void blink_after_wifi_initial_setup(CRGB* heart_leds) {
   if (wifi_connected) {
     Serial.println("wifi connected");
     for (int i = 0; i < 5; i++) {
@@ -242,5 +244,6 @@ void try_wifi_connect(CRGB* heart_leds) {
     }
   }
 }
+
 
 #endif
